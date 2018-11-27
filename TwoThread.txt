@@ -1,0 +1,63 @@
+package 两个线程一个打印数字另一个打印字母;
+
+class Print{
+    int flag = 1;
+    int count = 1;
+    public synchronized void PrintNum(){
+        while(flag != 1){
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.print(count*2-1);
+        System.out.print(count*2);
+        flag = 2;
+        notify();
+    }
+    public synchronized void PrintChar(){
+        while(flag != 2){
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.print((char)(count-1+'A'));
+        count++;
+        flag = 1;
+        notify();
+    }
+}
+
+class MyThread implements Runnable{
+    private Print print;
+    boolean flag;
+    public MyThread(Print print, boolean flag) {
+        this.print = print;
+        this.flag = flag;
+    }
+    public void run(){
+        if (flag == true) {
+            for(int i=0; i<26; i++) {
+                print.PrintNum();
+            }
+        } else {
+            for(int i=0; i<26; i++) {
+                print.PrintChar();
+            }
+        }
+    }
+}
+public class Test {
+    public static void main(String[] args) {
+        Print print = new Print();
+        MyThread myThread1 = new MyThread(print,true);
+        MyThread myThread2 = new MyThread(print,false);
+        Thread thread1 = new Thread(myThread1,"A");
+        Thread thread2 = new Thread(myThread2,"B");
+        thread2.start();
+        thread1.start();
+    }
+}
